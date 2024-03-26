@@ -9,6 +9,15 @@
 
 ## 🏖️  Destination: Discrete Diffusion
 
+As we all know, generative diffusion models have had considerable success.
+In its original form, a diffusion model acts on continuous data, where the noising process is easy to interpret.
+
+However, an extension of diffusion models to discrete data isn't quite so obvious.
+The allure of discrete diffusion is obvious, however, even if we just restrict our imagination to (protein) language modelling tasks.
+For example, autoregressive inference takes an amount of time proportional to sequence length.
+Producing one word at a time is perhaps contrary to how we might perceive our own sentences as forming, _guided_ by intention, in our heads before being spoken, or how we would sketch the outline of a document before filling in the details.
+
+As a final motivator: the already-successful Masked Language Modelling objective (where ~15% of tokens are masked) looks like a one-step noising process, so what happens if we go further?
 
 ## ⚔️ Discrete Diffusion Alternatives
 
