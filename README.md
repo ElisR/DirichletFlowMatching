@@ -138,11 +138,20 @@ The same logic extends to other times , where as we go from $t=0$ we rule out a 
 This means that as $K$ becomes larger, more and more model capacity must be devoted to an increasingly brief period of time.
 The vector fields are correspondingly discontinuous in space and time.
 
-Instead DFM opts for defining $p^t(\mathbf{x} | \mathbf{x}^1)$ explicitly such that $p^t(\mathbf{x}^1 | \mathbf{x})$ has support across the whole simplex at all times.
-
 ### 👍 Dirichlet Flow Matching
 
+Instead of starting from an interpolant, DFM opts for defining $p^t(\mathbf{x} | \mathbf{x}^1)$ explicitly such that $p^t(\mathbf{x}^1 | \mathbf{x})$ has support across the whole simplex at all times.
+This is defined for $t \in [0, \infty)$ as:
+$$p^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i) = \mathrm{Dir}(\mathbf{x}; \boldsymbol{\alpha} = \mathbf{1} + t \cdot \mathbf{e}^i).$$
+The behaviour of this it to concentrate density at the $i$ th vertex as $t \to \infty$, while retaining support over the entire simplex.
+(Note the unfortunately confusing fact that $\mathbf{x}^1$ still labels a data sample, even though we have convergence at $t > 1$ instead.)
+
+From this, they derive a valid $u^t(\mathbf{x} | \mathbf{x}^1)$ (of infinitely many) that generates the above conditional probability path, starting from an ansatz $u^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i) = C(x^i, t) (\mathbf{e}^i - \mathbf{x})$ that still points in the same direction as the interpolant version. 
 
 
+## 😏 Guidance and Distillation
+
+A wonderful feature that this flow matching implementation retains from diffusion is the capability to do _guidance_, both with and without a classifier.
+They do this by deriving a linear relationship between the marginal vector field and the score function $`s^t(\mathbf{x}; \theta) \approx \nabla_{\mathbf{x}} \log{p^t(\mathbf{x})}`$
 
 ## 📊 Results
