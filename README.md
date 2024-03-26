@@ -6,16 +6,18 @@
 >
 > Unfortunately, GitHub's LaTeX parser is slightly limited, and will aggressively interpret subscript indicators as attempts to italicise text, so I will be using superscript more than I would like.
 
-## Recap: A Simplex
+## ⏪ Recap: A Simplex
 
 A simplex $S_K$ in $K$ dimensions is defined by
 $$S_K = \lbrace \mathbf{x} = (x^1, \ldots, x^K)^T \in \mathbb{R}^K | \mathbf{1}^T \mathbf{x} = 1, \mathbf{x} \geq 0 \rbrace.$$
 This naturally emerges when talking about categorical distributions, where the concatenation of the probabilities of each class lies on a simplex.
 When one-hot encoding a categorical variable as $\mathbf{x}$, the variable lies at the vertex of a $K$-dimensional simplex.
 
+<!-- Draw a multinomial distribution with three options. Draw a simplex as a triangle in 3D. -->
+
 Many approaches to discrete diffusion start with this to promote a discrete variable to a continuous space, including Dirichlet Flow Matching, which we will review.
 
-## Discrete Diffusion Alternatives
+## ⚔️ Discrete Diffusion Alternatives
 
 Here is a "TL;DR" the current approaches to making the idea of diffusion models (i.e. noising the data and learning the gradient of the probability distribution) work for discrete data.
 We can come back to this at the end of the talk.
@@ -29,9 +31,9 @@ We can come back to this at the end of the talk.
 Cite CDCD approach.
 
 
-## Flow Matching ([Lipman et al. 2022](https://arxiv.org/abs/2210.02747))
+## 🔀 Flow Matching ([Lipman et al. 2022](https://arxiv.org/abs/2210.02747))
 
-Flow matching provides a training objective similar to those from diffusion models, but applies it to the (continuouos) normalising flows of yesteryear.
+Flow matching provides a training objective similar to those from diffusion models, but applies it to the (continuous) normalising flows of yesteryear.
 At a high level, the neural network again learns the small steps needed to incrementally go from a pure noise distribution $q^0$ to the data distribution $p^{\text{data}}$. 
 The way we get to a pure noise distribution differs compared to diffusion models, however.
 
@@ -60,13 +62,16 @@ This is great!
 It lets us train a model to produce samples from $p^{\text{data}}(\mathbf{x})$ (by integrating $u^t(\mathbf{x})$), without ever needing access to the marginal probability paths or vector fields. 
 We have everything we need from small batches of data.
 
+A key ingredient is missing though: we haven't specified how we will construct $p^t(\mathbf{x} | \mathbf{x}^1)$.
+There is considerable freedom here, so let's go back to the Dirichlet Flow Matching paper and see how they do it.
+
 [^1]: If the transport/continuity equation is unfamiliar, it's just differential equation that expresses that a certain quantity must be "conserved".
 For example, given a snapshot of a fluid, whatever the density distribution and velocity field describing the motion of small fluid parcels, we know for certain that the mass comprising the fluid cannot be created or destroyed, which restricts how the density can evolve. 
 
 [^2]: The proof of this is short and just shows the given vector field satisfying the transport equation by taking $\partial^t p^t(\mathbf{x}) = \int [\partial^t p^t(\mathbf{x} | \mathbf{x}^1)] p^{\text{data}}(\mathbf{x}^1)\, d\mathbf{x}^1$ and substituting in the transport equation for the conditional vector field, with some switching of integrals and derivatives.
 
-## _Linear_ Flow Matching vs _Dirichlet_ Flow Matching
+## 🧠 _Linear_ Flow Matching vs _Dirichlet_ Flow Matching
 
 
 
-## Results
+## 📊 Results
