@@ -44,7 +44,7 @@ At intermediate "times" $t \in [0, 1]$, we have will have a probability density 
 The _flow matching_ objective aims to minimise
 $$\mathcal{L}^{\text{FM}}(\theta) = \mathbb{E}^{t\sim[0, 1], \mathbf{x} \sim p^t(\mathbf{x})} [ \| v^t(\mathbf{x};{\theta}) - u^t(\mathbf{x}) \|^2 ]$$
 
-<!-- Draw a figure of a probability distribution and a vector field, like one from [FFJORD](https://arxiv.org/abs/1810.01367) -->
+<!-- Draw a figure of a probability distribution and a vector field, like Figure 1 from [FFJORD](https://arxiv.org/abs/1810.01367) -->
 
 The first problem to overcome is that we don't have $p^{\text{data}}$, only _samples_ from the data distribution, so it's not clear what we should regress against.
 For this reason, one would like to work with a conditional probability path conditioned on an individual data sample $p^t(\mathbf{x} | \mathbf{x}^1)$ that satisfies the boundary conditions $p^0(\mathbf{x} | \mathbf{x}^1) = q(\mathbf{x})$ and $p^1(\mathbf{x} | \mathbf{x}^1) \approx \delta(\mathbf{x} - \mathbf{x}^1)$ at $t=0$ and $t=1$, respectively.
@@ -94,7 +94,7 @@ A few other approaches to discrete diffusion start with this to promote a discre
 During flow matching, this means that the transport _destination_ will be samples from the vertices, but at intermediate times the samples can lie anywhere on the simplex, like a superposition of different valid destinations.
 
 One other modification by DFM is that instead of training their neural network to predict a vector field $v^t(\mathbf{x};{\theta})$, they train a denoising classifier $p(\mathbf{x}^1 | \mathbf{x}; \theta)$ by minimising a cross-entropy loss
-$$\mathcal{L}^{\text{CFM}}(\theta) = \mathbb{E}^{t\sim[0, 1], \mathbf{x}^1 \sim p^{\text{data}}(\mathbf{x}), \mathbf{x} \sim p^t(\mathbf{x} | \mathbf{x}^1)} [ \log{p(\mathbf{x}^1 | \mathbf{x}; \theta)}],$$
+$$\mathcal{L}^{\text{DFM}}(\theta) = \mathbb{E}^{t\sim[0, 1], \mathbf{x}^1 \sim p^{\text{data}}(\mathbf{x}), \mathbf{x} \sim p^t(\mathbf{x} | \mathbf{x}^1)} [ \log{p(\mathbf{x}^1 | \mathbf{x}; \theta)}],$$
 which share the same minimiser.
 
 This way, at any point in time, the model is trying to guess the correct label of a variable.
@@ -109,12 +109,40 @@ which is naturally restricted to tangent plane of the simplex.
 A key ingredient was missing from our introduction to flow matching: how does one construct $p^t(\mathbf{x} | \mathbf{x}^1)$?
 There is considerable design freedom here (much more than for standard diffusion models which rely on the special properties of Gaussians), so let's focus on how the Dirichlet Flow Matching paper does it.
 
+Before getting started, let's specify the noisy prior distribution to be the uniform density on the simplex i.e. a Dirichlet distribution[^3] with uniform prior:
+$$q(\mathbf{x}^0) = \mathrm{Dir}(\mathbf{x}^0; \boldsymbol{\alpha} = (1, \ldots, 1)^T)$$
+
+[^3]: Recall that the Dirichlet distribution is the _conjugate prior_ for a multinomial distribution in Bayesian statistics, meaning that if we started with Dirichlet prior over the class probabilities, the posterior distribution over class probabilities after observing samples drawn from a multinomial distribution will also be a Dirichlet distribution with modified parameters.
+$\boldsymbol{\alpha}$ can be interpreted as the number of prior observations of each class.
+A prior of $\boldsymbol{\alpha} = (1, \ldots, 1)^T$ therefore means you pretend that you have seen every class once when drawing from a multinomial.
+
+### 👎 Linear Flow Matching
+
 Typically, flow matching papers produce the conditional vector field $u^t(\mathbf{x} | \mathbf{x}^1)$ by defining a conditional flow map (also dubbed an "interpolant") $\psi^t(\mathbf{x}^0 | \mathbf{x}^1)$ that directly transports $\mathbf{x}^0 \sim q$ to $\mathbf{x} = \psi^t(\mathbf{x}^0 | \mathbf{x}^1) \sim p^t(\mathbf{x} | \mathbf{x}^1)$ at time $t$, for which the vector field is
 $$u^t(\mathbf{x} | \mathbf{x}^1) = \frac{d}{dt} \psi^t(\mathbf{x}^0 | \mathbf{x}^1),$$
 with the boundary conditions $\psi^0(\mathbf{x}^0 | \mathbf{x}^1) = \mathbf{x}^0$ and $\psi^1(\mathbf{x}^0 | \mathbf{x}^1) = \mathbf{x}^1$.
 
 The simplest interpolant is just the linear flow map
 $$\psi^t(\mathbf{x}^0 | \mathbf{x}^1) = (1 - t) \mathbf{x}^0 + t \mathbf{x}^1 \implies u^t(\mathbf{x} | \mathbf{x}^1)= \mathbf{x}^1 - \mathbf{x}^0$$
-Note that all points remain on the simplex, and that points move in straight paths.
+Note that all points remain on the simplex, and that points always move in straight lines.
+
+As DFM points out, however, this design has some pathological behaviour.
+Looking back at the modified training objective $\mathcal{L}^{\text{DFM}}(\theta)$, we recall that the model is trying to learn $p(\mathbf{x}^1 | \mathbf{x}) \propto p^t(\mathbf{x}^1 | \mathbf{x}) p^{\text{data}}(\mathbf{x})$.
+
+<!-- Draw the triangular simplex, like Figure 2 of DFM -->
+
+Now look again at the linear flow map above, which moves samples at a constant velocity.
+We know that at times $t > 1/2$, a sample must be closer to its destination than it will be to wherever it started.
+Hence, guessing the correct class after $t = 1/2$ is trivial, because it's just an argmax over the coordinates.
+The same logic extends to other times , where as we go from $t=0$ we rule out a vertex from $p(\mathbf{x}^1 | \mathbf{x})$ every time we cross $t = 1/k$ for $k \in \{ 2, \ldots, K \}$.
+This means that as $K$ becomes larger, more and more model capacity must be devoted to an increasingly brief period of time.
+The vector fields are correspondingly discontinuous in space and time.
+
+Instead DFM opts for defining $p^t(\mathbf{x} | \mathbf{x}^1)$ explicitly such that $p^t(\mathbf{x}^1 | \mathbf{x})$ has support across the whole simplex at all times.
+
+### 👍 Dirichlet Flow Matching
+
+
+
 
 ## 📊 Results
