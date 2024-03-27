@@ -101,7 +101,7 @@ This way, at any point in time, the model is trying to guess the correct label o
 This may remind you of how diffusion model objectives are often recast to predicting fully denoised samples at all times.
 
 At inference time, the vector field can be parameterised as
-$$v^t(\mathbf{x};{\theta}) = \sum_{i=1}^K u^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i;{\theta}) p(\mathbf{x} = \mathbf{e}^i | \mathbf{x}; \theta),$$
+$$v^t(\mathbf{x};{\theta}) = \sum_{i=1}^K u^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i) p(\mathbf{x}^1 = \mathbf{e}^i | \mathbf{x}; \theta),$$
 which is naturally restricted to tangent plane of the simplex.
 
 ## 🧠 _Linear_ Flow Matching vs _Dirichlet_ Flow Matching
@@ -152,6 +152,22 @@ From this, they derive a valid $u^t(\mathbf{x} | \mathbf{x}^1)$ (of infinitely m
 ## 😏 Guidance and Distillation
 
 A wonderful feature that this flow matching implementation retains from diffusion is the capability to do _guidance_, both with and without a classifier.
-They do this by deriving a linear relationship between the marginal vector field and the score function $`s^t(\mathbf{x}; \theta) \approx \nabla_{\mathbf{x}} \log{p^t(\mathbf{x})}`$
+They do this by deriving a linear relationship between the marginal vector field and the score function $`s^t(\mathbf{x}; \theta) \approx \nabla_{\mathbf{x}} \log{p^t(\mathbf{x})}`$.
+This follows from comparing the score function
+$$s^t(\mathbf{x};{\theta}) = \sum_{i=1}^K s^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i) p(\mathbf{x}^1 = \mathbf{e}^i | \mathbf{x}; \theta)$$
+to our vector fields equation which looked very similar.
+The result is a linear relationship
+$$v^t(\mathbf{x};{\theta}) = \mathbf{U} \mathbf{D}^{-1} s^t(\mathbf{x};{\theta})$$
+for a diagonal matrix $\mathbf{D}$ and $\mathbf{U}$ whose rows are given by $u^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i)$.
+
+### ❎ Classifier-free Guidance
+
+Following the recipe of classifier-free guidance, if we have class-conditional and unconditional flow models $v^t(\mathbf{x},y;{\theta})$ and $v^t(\mathbf{x},\varnothing;{\theta})$, we just integrate
+$$v^{t}_{\text{CFG}}(\mathbf{x},y;{\theta}) = \gamma v^t(\mathbf{x},y;{\theta}) + (1 - \gamma) v^t(\mathbf{x},\varnothing;{\theta}).$$
+
+### ✅ Classifier Guidance
+
+
+### ⚗️ Distillation
 
 ## 📊 Results
