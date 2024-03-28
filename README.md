@@ -55,7 +55,7 @@ $$\frac{\partial p^t}{\partial t} + \nabla \cdot (p^t u^t) = 0.$$
 <!-- Draw a figure of a circle with some amount of stuff leaving it. -->
 
 We will construct the target _marginal_ probability path $p^t(\mathbf{x})$ through a mixture of these simpler probability _conditional_ paths:
-$$p^t(\mathbf{x}) = \int p^t(\mathbf{x} | \mathbf{x}^1) p^{\text{data}}(\mathbf{x}^1)\, d\mathbf{x}^1,$$
+$$p^t(\mathbf{x}) = \int p^t(\mathbf{x} | \mathbf{x}^1) p^{\text{data}}(\mathbf{x}^1) d\mathbf{x}^1,$$
 so that at $t=1$, $p^1(\mathbf{x}) \approx p^{\text{data}}(\mathbf{x}^1)$.
 
 The next leap is that the marginal vector field that generates $p^t(\mathbf{x})$ can also be constructed[^2] in a similar way:
@@ -112,7 +112,7 @@ There is considerable design freedom here (much more than for standard diffusion
 Before getting started, let's specify the noisy prior distribution to be the uniform density on the simplex i.e. a Dirichlet distribution[^3] with uniform prior:
 $$q(\mathbf{x}^0) = \mathrm{Dir}(\mathbf{x}^0; \boldsymbol{\alpha} = (1, \ldots, 1)^T)$$
 
-[^3]: Recall that the Dirichlet distribution is the _conjugate prior_ for a multinomial distribution in Bayesian statistics, meaning that if we started with Dirichlet prior over the class probabilities, the posterior distribution over class probabilities after observing samples drawn from a multinomial distribution will also be a Dirichlet distribution with modified parameters.
+[^3]: The Dirichlet distribution is the _conjugate prior_ for a multinomial distribution in Bayesian statistics, meaning that if we started with Dirichlet prior over the class probabilities, the posterior distribution over class probabilities after observing samples drawn from a multinomial distribution will also be a Dirichlet distribution with modified parameters.
 $\boldsymbol{\alpha}$ can be interpreted as the number of prior observations of each class.
 A prior of $\boldsymbol{\alpha} = (1, \ldots, 1)^T$ therefore means you pretend that you have seen every class once when drawing from a multinomial.
 
@@ -127,7 +127,7 @@ $$\psi^t(\mathbf{x}^0 | \mathbf{x}^1) = (1 - t) \mathbf{x}^0 + t \mathbf{x}^1 \i
 Note that all points remain on the simplex, and that points always move in straight lines.
 
 As DFM points out, however, this design has some pathological behaviour.
-Looking back at the modified training objective $\mathcal{L}^{\text{DFM}}(\theta)$, we recall that the model is trying to learn $p(\mathbf{x}^1 | \mathbf{x}) \propto p^t(\mathbf{x}^1 | \mathbf{x}) p^{\text{data}}(\mathbf{x})$.
+Looking back at the modified training objective $\mathcal{L}^{\text{DFM}}(\theta)$, we recall that the model is trying to learn $p(\mathbf{x}^1 | \mathbf{x}) \propto p^t(\mathbf{x} | \mathbf{x}^1) p^{\text{data}}(\mathbf{x}^1)$.
 
 <!-- Draw the triangular simplex, like Figure 2 of DFM -->
 
@@ -153,12 +153,13 @@ From this, they derive a valid $u^t(\mathbf{x} | \mathbf{x}^1)$ (of infinitely m
 
 A wonderful feature that this flow matching implementation retains from diffusion is the capability to do _guidance_, both with and without a classifier.
 They do this by deriving a linear relationship between the marginal vector field and the score function $`s^t(\mathbf{x}; \theta) \approx \nabla_{\mathbf{x}} \log{p^t(\mathbf{x})}`$.
-This follows from comparing the score function
+This linear relationship follows from comparing the score function
 $$s^t(\mathbf{x};{\theta}) = \sum_{i=1}^K s^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i) p(\mathbf{x}^1 = \mathbf{e}^i | \mathbf{x}; \theta)$$
-to our vector fields equation which looked very similar.
+to our vector field equation which looked very similar.
+Written as a matrix equation, this is $s^t(\mathbf{x};{\theta})^i = \mathbf{D}^{ij} p(\mathbf{e}^j | \mathbf{x}; \theta)$, where $\mathbf{D}$ is a diagonal matrix and specifically $\mathbf{D}^{ij} = \delta^{ij} t / x^i$ for DFM's Dirichlet probability path.
 The result is a linear relationship
 $$v^t(\mathbf{x};{\theta}) = \mathbf{U} \mathbf{D}^{-1} s^t(\mathbf{x};{\theta})$$
-for a diagonal matrix $\mathbf{D}$ and $\mathbf{U}$ whose rows are given by $u^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i)$.
+where $\mathbf{U}$'s rows are given by $u^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i)$.
 
 ### ❎ Classifier-free Guidance
 
@@ -167,7 +168,22 @@ $$v^{t}_{\text{CFG}}(\mathbf{x},y;{\theta}) = \gamma v^t(\mathbf{x},y;{\theta}) 
 
 ### ✅ Classifier Guidance
 
+In classifier guidance, one derives a conditional score function from the gradients of a noisy classifier (derived from Bayes' theorem):
+$$s^{t}_{\text{CG}}(\mathbf{x},y;{\theta}) = s^t(\mathbf{x},\varnothing;{\theta}) + \nabla^{\mathbf{x}} \log p^t(y | \mathbf{x};{\theta}).$$
+One can then convert this to a model posterior and then a marginal vector field.
+
+This isn't quite so straightforward, however, because classifier gradients may have components that are off-simplex or lead to invalid negative posterior probabilities.
+In their results section, they find that classifier-free guidance performs better than classifier guidance.
+So, we can justify forgetting the details about how to make classifier guidance work here, but I briefly summarise it below.
+
+One has to project the score onto the tangent plane of the simplex by replacing $\mathbf{D} \to \tilde{\mathbf{D}} = (I - \mathbf{1}\mathbf{1}^T/K) \mathbf{D}$.
+This matrix can't be inverted, so they instead have to solve a constrained matrix equation and again project probabilities onto the simplex.
+Once we have valid posterior probabilities, we can get the vector fields like usual.
 
 ### ⚗️ Distillation
 
 ## 📊 Results
+
+A quick word about extending this to sequences: it may look odd that we have just been dicussing single categorical variables here, but in practice extending this to modelling _sequences_ of categorical variables like protein sequences is trivial.
+Sequences just live in a product space of simplexes $S^K \times S^K \times \cdots \times S^K \times S^K$, with vector fields operating in a product of tangent spaces, so nothing changes there.
+The difference is that the neural network gets to see every noised variable in the sequence at once, i.e. predicts $p(\mathbf{x}^{1a} | [\mathbf{x}^a, \mathbf{x}^b, \ldots, \mathbf{x}^z]; \theta)$.
