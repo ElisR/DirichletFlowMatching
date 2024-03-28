@@ -6,10 +6,17 @@
 >
 > Unfortunately, GitHub's LaTeX parser is slightly limited, and will aggressively interpret subscript indicators as attempts to italicise text, so I will be using superscript more than I would like.
 
+> [!WARNING]
+>
+> This talk is phrased in a way that assumes some familiarity with diffusion models.
+
 
 ## 🏖️  Destination: Discrete Diffusion
 
-As we all know, generative diffusion models have had considerable success.
+Generative models allow sampling $\mathbf{x}$ according to a probability $p(\mathbf{x}; \theta)$ that has been trained to match the empirical data distribution $p^{\text{data}}(\mathbf{x})$.
+This sampling process usually involves multiple evaluations of a neural network.
+
+As we all know, generative diffusion models have had considerable success at this task (thinking specifically of image generation models).
 In its original form, a diffusion model acts on continuous data, where the noising process is easy to interpret.
 
 However, an extension of diffusion models to discrete data isn't quite so obvious.
@@ -17,6 +24,8 @@ The allure of discrete diffusion is obvious, however, even if we just restrict o
 For example, one of the downsides of autoregressive models is that inference takes an amount of time proportional to sequence length.
 Producing one word at a time is contrary to how we might perceive our own sentences as forming, _guided_ by intention, in our heads before being spoken, or how we would sketch the outline of a document before filling in the details.
 As a final motivator: the already-successful masked manguage modelling (MLM) objective (where ~15% of tokens are masked) looks like a one-step denoising process, so what happens if we go further?
+
+With a discrete diffusion model, we could feed our model many token sequences during training (for example amino acid sequences of viable proteins), and produce novel sequences at inference time, hopefully from the same distribution.
 
 Here, we will review [Dirichlet Flow Matching](https://arxiv.org/abs/2402.05841) (DFM) as a new approach to this problem.
 
@@ -158,6 +167,7 @@ From this, they derive a valid $u^t(\mathbf{x} | \mathbf{x}^1)$ (of infinitely m
 ## 😏 Guidance and Distillation
 
 A wonderful feature that this flow matching implementation retains from diffusion is the capability to do _guidance_, both with and without a classifier.
+Guidance is the ability to generate from a data distribution of a specific class $y$ i.e. $p^{\text{data}}(\mathbf{x} | y)$
 They do this by deriving a linear relationship between the marginal vector field and the score function $`s^t(\mathbf{x}; \theta) \approx \nabla_{\mathbf{x}} \log{p^t(\mathbf{x})}`$.
 This linear relationship follows from comparing the score function
 $$s^t(\mathbf{x};{\theta}) = \sum_{i=1}^K s^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i) p(\mathbf{x}^1 = \mathbf{e}^i | \mathbf{x}; \theta)$$
@@ -167,12 +177,12 @@ The result is a linear relationship
 $$v^t(\mathbf{x};{\theta}) = \mathbf{U} \mathbf{D}^{-1} s^t(\mathbf{x};{\theta})$$
 where $\mathbf{U}$'s rows are given by $u^t(\mathbf{x} | \mathbf{x}^1 = \mathbf{e}^i)$.
 
-### ❎ Classifier-free Guidance
+### ❎🫵 Classifier-free Guidance
 
 Following the recipe of classifier-free guidance, if we have class-conditional and unconditional flow models $v^t(\mathbf{x},y;{\theta})$ and $v^t(\mathbf{x},\varnothing;{\theta})$, we just integrate
 $$v^{t}_{\text{CFG}}(\mathbf{x},y;{\theta}) = \gamma v^t(\mathbf{x},y;{\theta}) + (1 - \gamma) v^t(\mathbf{x},\varnothing;{\theta}).$$
 
-### ✅ Classifier Guidance
+### ✅🫵 Classifier Guidance
 
 In classifier guidance, one derives a conditional score function from the gradients of a noisy classifier (derived from Bayes' theorem):
 $$s^{t}_{\text{CG}}(\mathbf{x},y;{\theta}) = s^t(\mathbf{x},\varnothing;{\theta}) + \nabla^{\mathbf{x}} \log p^t(y | \mathbf{x};{\theta}).$$
