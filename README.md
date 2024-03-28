@@ -27,11 +27,17 @@ We can come back to this at the end of the talk.
 
 ### Simplex Approaches like DDSM or BFN
 
+Perform something that looks like diffusion on the categorical probabilities.
+
 ### D3PM
+
+Noise the data as a Markov chain acting on the categorical distribution.
 
 ### Continuous Diffusion in Latent Spaces
 
-Cite CDCD approach.
+Map the discrete variables into continuous embeddings, then do standard Gaussian diffusion in that space before mapping back.
+
+<!-- Cite CDCD approach. -->
 
 ## 🔀 Flow Matching ([Lipman et al. 2022](https://arxiv.org/abs/2210.02747))
 
@@ -182,8 +188,33 @@ Once we have valid posterior probabilities, we can get the vector fields like us
 
 ### ⚗️ Distillation
 
+Distillation aims to reduce the inference time of the iterative generative process while retaining sample quality.
+This usually involves a "teacher" model and a "student" model which aims to do more work with the same amount of compute.
+For example, [Salimans & Ho](https://arxiv.org/abs/2202.00512)'s _progressive distillation_ trains a student to perform two of the teacher's denoising steps in one step, then repeat this until inference takes only four steps rather than thousands.
+
+No such distillation techniques exist discrete diffusion or autoregressive language models, 
+However, this paper has mapped inference to solving a deterministic ODE based on the vector field $v^t(\mathbf{x};\theta)$.
+Hence, the teacher model can sample pairs of noise and training targets like we have discussed above, and the student can try to learn this map in as little as one step. 
+
 ## 📊 Results
 
 A quick word about extending this to sequences: it may look odd that we have just been dicussing single categorical variables here, but in practice extending this to modelling _sequences_ of categorical variables like protein sequences is trivial.
 Sequences just live in a product space of simplexes $S^K \times S^K \times \cdots \times S^K \times S^K$, with vector fields operating in a product of tangent spaces, so nothing changes there.
 The difference is that the neural network gets to see every noised variable in the sequence at once, i.e. predicts $p(\mathbf{x}^{1a} | [\mathbf{x}^a, \mathbf{x}^b, \ldots, \mathbf{x}^z]; \theta)$.
+
+Their results are evaluated on conditional generation tasks and an unconditional generation task.
+
+Their conditional task aims to produce a DNA sequence with 1024 base pairs having a given transcription/promoter profile.
+The target profile comes from a prediction from another model about a sequence in the dataset.
+Their metric is mean squared error between the predicted profile of the generated sequence with the profile of the ground truth sequence that was originally used as a target. 
+DFM performs better than the other published D3PM, Bit Diffusion, DDSM and language model baselines.
+The language model was previously the best with 0.0333 MSE, but took 1024 model evaluations.
+However, even their distilled DFM model with one step outperforms this, getting 0.0278 MSE! 
+Interestingly, linear flow matching which they introduce and criticise is not far behind, probably because base pairs have a small vocabulary of $K=16$.
+
+Their second task aims to generate DNA enhancer sequences.
+DFM again performs better on a Frechet-Inception-Distance-type metric modified for a classifier that predicts cell types.
+Their distilled model also retains most of the performance at 100x less cost.
+
+Like in other image diffusion models, they find that guidance can even improve _unconditional_ generation.
+This involves picking a class based on empirical frequency, then guiding towards that class during generation.
