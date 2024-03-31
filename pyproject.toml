@@ -1,0 +1,64 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "dfm"
+version = "0.1.0"
+description = "Basic implementation of Dirichlet Flow Matching in JAX"
+authors = ["Elis Roberts"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+jax = "^0.4.25"
+jaxlib = "^0.4.25"
+optax = "^0.2.2"
+flax = "^0.8.2"
+jaxtyping = "^0.2.28"
+torch = "^2.2.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.8.1"
+ipykernel = "^6.29.4"
+matplotlib = "^3.8.3"
+mpltern = "^1.0.3"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+lint.select = ["ALL"]
+lint.ignore = [
+    "G004",
+    "FIX",
+    "TD",
+    "RET504",
+    "F821", # jaxtyping
+    "F722", # jaxtyping
+]
+lint.exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+lint.fixable = ["ALL"]
+
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
