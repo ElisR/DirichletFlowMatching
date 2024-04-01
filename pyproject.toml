@@ -23,6 +23,7 @@ pytest = "^8.8.1"
 ipykernel = "^6.29.4"
 matplotlib = "^3.8.3"
 mpltern = "^1.0.3"
+tqdm = "^4.66.2"
 
 [tool.ruff]
 line-length = 120
@@ -35,6 +36,7 @@ lint.ignore = [
     "RET504",
     "F821", # jaxtyping
     "F722", # jaxtyping
+    "S101", # asserts, useful for pedagogy
 ]
 lint.exclude = [
     ".bzr",
