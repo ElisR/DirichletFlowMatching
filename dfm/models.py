@@ -18,14 +18,11 @@ class InnerNetwork(nn.Module):
         d = x.shape[-2]
         residual = x
 
-        radial = jnp.exp(-((t - jnp.linspace(0, 1, num=self.num_cats)) ** 2))
-        x = x + nn.Dense(features=self.num_cats)(radial)[None, :]
-
         x = nn.Dense(features=self.num_cats, name="category_mixer")(x)  # TODO Be careful with bigger shape
         x = nn.gelu(x)
         x = nn.Dense(features=d, name="position_mixer")(x.T)
-        x = nn.gelu(x)
-        return x.T + residual, None
+        x = nn.gelu(x.T)
+        return x + residual, None
 
 
 class MultipleMLP(nn.Module):
