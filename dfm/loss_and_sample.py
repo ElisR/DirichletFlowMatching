@@ -87,6 +87,14 @@ def conditional_dirichlet_flow_coeff(
     beta = jax.scipy.special.beta(t + 1, num_cats - 1)
     return -beta_inc_diff * beta / (jax.lax.integer_pow(1 - x, num_cats - 1) * jnp.power(x, t))
 
+    # lnbeta = jax.scipy.special.betaln(t + 1, num_cats - 1)
+    # ans = jnp.zeros_like(x)
+    # ans = ans + jnp.log(-beta_inc_diff)
+    # ans = ans + lnbeta
+    # ans = ans - (num_cats - 1) * jnp.log1p(-x)
+    # ans = ans - t * jnp.log(x)
+    # return ans
+
 
 def conditional_dirichlet_flow(
     x: Float[Array, "*shape num_cats"],
