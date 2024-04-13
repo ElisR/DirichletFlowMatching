@@ -1,4 +1,5 @@
 """Module containing loss functions and sampling methods for Dirichlet Flow Matching."""
+
 from functools import partial
 
 import flax.linen as nn
@@ -66,8 +67,9 @@ def conditional_dirichlet_flow_coeff(
 
     Calculates the coefficient for every dimension in one step.
 
-    NOTE Derivative not allowed by JAX for first argument of regularised incomplete beta function,
-    so we have to use a finite difference to estimate the gradient.
+    NOTE Derivative not allowed by JAX i.e. `jax.grad(betainc, argnums=0)` for first argument
+    of regularised incomplete beta function, so we have to use a finite difference
+    to estimate the gradient.
 
     Args:
         x: The position on the simplex at which to calculate the vector field.
@@ -120,7 +122,7 @@ def sample(
     shape: tuple[int],
     key: Key,
 ) -> Float[Array, "*shape"]:
-    """Sample by integrating .
+    """Sample by integrating the vector field.
 
     Args:
         params: Parameters of the neural network.

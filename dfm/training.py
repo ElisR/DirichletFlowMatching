@@ -1,4 +1,5 @@
 """Module for training the model."""
+
 from functools import partial
 
 import flax.linen as nn
@@ -13,7 +14,14 @@ import dfm.loss_and_sample as las
 
 @partial(jax.jit, static_argnums=(0, 2))
 def make_step(  # noqa: PLR0913
-    model: nn.Module, x_batch: Int[Array, "N *shape"], optim, opt_state, params: PyTree, t_infty: float, *, key: Key
+    model: nn.Module,
+    x_batch: Int[Array, "N *shape"],
+    optim,
+    opt_state,
+    params: PyTree,
+    t_infty: float,
+    *,
+    key: Key,
 ):
     """Calculate loss & grad for a batch and update model according to optimiser.
 
