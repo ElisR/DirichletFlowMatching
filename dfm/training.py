@@ -17,17 +17,17 @@ def make_step(  # noqa: PLR0913
     model: nn.Module,
     x_batch: Int[Array, "N *shape"],
     optim,
-    opt_state,
+    opt_state: PyTree,
     params: PyTree,
     t_infty: float,
     *,
     key: Key,
-):
+) -> tuple[float, PyTree, PyTree]:
     """Calculate loss & grad for a batch and update model according to optimiser.
 
     Args:
         model: The DFM model to be trained.
-        x_batch: The input data, a JAX array of integers of shape (N, D).
+        x_batch: The input data, a JAX array of integers of shape (N, *shape).
         optim: Optax optimiser.
         opt_state: Optax optimiser state.
         params: The parameters of the model.

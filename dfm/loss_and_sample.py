@@ -149,6 +149,7 @@ def sample(
     alpha = jnp.ones((num_cats,))
     x_0 = jr.dirichlet(key, alpha, shape=shape)
 
+    # NOTE This can be swapped out for a better ODE integrator from Diffrax
     def time_step(x: Float[Array, "*shape num_cats"], t: Int):  # noqa: ANN202
         logits = model.apply({"params": params}, x, t)
         probs = nn.softmax(logits, axis=-1)

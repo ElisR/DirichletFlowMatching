@@ -8,35 +8,6 @@ import jax.numpy as jnp
 from jaxtyping import Array, Float
 
 
-class InputMLP(nn.Module):
-    """Simple MLP to change from float to categorical logits."""
-
-    hidden_dim: int  # Dimension after embedding
-
-    @nn.compact
-    def __call__(self: Self, y: Float[Array, "h w num_cats"]) -> Float[Array, "h w 1"]:
-        """Apply an MLP with a single hidden layer."""
-        num_cats = y.shape[-1]
-        y = nn.Dense(features=num_cats, use_bias=True)(y)
-        y = nn.relu(y)
-        y = nn.Dense(features=self.hidden_dim, use_bias=True)(y)
-        return y
-
-
-class OutputMLP(nn.Module):
-    """Simple MLP to change from float to categorical logits."""
-
-    num_cats: int  # Number of categories for output
-
-    @nn.compact
-    def __call__(self: Self, y: Float[Array, "h w 1"]) -> Float[Array, "h w num_cats"]:
-        """Apply an MLP with a single hidden layer."""
-        y = nn.Dense(features=self.num_cats, use_bias=True)(y)
-        y = nn.relu(y)
-        y = nn.Dense(features=self.num_cats, use_bias=True)(y)
-        return y
-
-
 class MLP(nn.Module):
     """Basic MLP architecture."""
 
@@ -90,7 +61,9 @@ class Mixer2D(nn.Module):
         assert width % self.patch_size == 0
 
         # Collapse one-hot encoding into single float channel
-        y = InputMLP(hidden_dim=8)(y)
+        y = nn.Dense(features=num_cats, use_bias=True)(y)
+        y = nn.relu(y)
+        y = nn.Dense(features=1, use_bias=True)(y)
 
         # Stack time as a channel
         t = einops.repeat(t, "-> h w 1", h=height, w=width)
@@ -121,5 +94,8 @@ class Mixer2D(nn.Module):
         )(y)
 
         # Turn single float channel into logits
-        y = OutputMLP(num_cats=num_cats)(y)
+        y = nn.Dense(features=self.num_cats, use_bias=True)(y)
+        y = nn.relu(y)
+        y = nn.Dense(features=self.num_cats, use_bias=True)(y)
+
         return y
