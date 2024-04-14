@@ -17,7 +17,7 @@ class MNISTDataset(Dataset):
     """
 
     @staticmethod
-    def _transform(pic: Int[np.ndarray, "28 28"]) -> Int[Array, "28 28"]:
+    def _transform(pic: Int[np.ndarray, "28 28"], *, num_cats: int) -> Int[Array, "28 28"]:
         """Function for transforming PIL image to JAX array."""
         normalised = jnp.array(pic, dtype=jnp.float32) / 255.0
         bins = jnp.linspace(0.0, 1.0, num_cats + 1)
@@ -44,5 +44,5 @@ class MNISTDataset(Dataset):
     def __getitem__(self: Self, idx: int) -> Int[Array, "28 28"]:
         """Return the image at the given index."""
         pic, _ = self.mnist[idx]
-        pic = self._transform(pic)
+        pic = self._transform(pic, num_cats=self.num_cats)
         return pic
