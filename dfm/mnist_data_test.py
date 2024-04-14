@@ -6,7 +6,7 @@ from dfm.mnist_data import MNISTDataset
 
 
 def test_mnist_properties():
-    dataset = MNISTDataset()
+    dataset = MNISTDataset(train=False)
     image = dataset[0]
 
     assert image.shape == (28, 28)

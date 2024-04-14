@@ -90,7 +90,7 @@ class Mixer2D(nn.Module):
         assert width % self.patch_size == 0
 
         # Collapse one-hot encoding into single float channel
-        y = InputMLP(hidden_dim=5)(y)
+        y = InputMLP(hidden_dim=8)(y)
 
         # Stack time as a channel
         t = einops.repeat(t, "-> h w 1", h=height, w=width)
