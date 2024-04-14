@@ -25,6 +25,7 @@ ipykernel = "^6.29.4"
 matplotlib = "^3.8.3"
 mpltern = "^1.0.3"
 tqdm = "^4.66.2"
+mediapy = "^1.2.0"
 
 [tool.ruff]
 line-length = 120
