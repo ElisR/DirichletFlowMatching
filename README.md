@@ -1,6 +1,30 @@
 # Dirichlet Flow Matching
 
-> This repository contains some example code for a talk about [Dirichlet Flow Matching](https://arxiv.org/abs/2402.05841), an approach to "discrete diffusion" over categorical sequences.
+> This repository contains some JAX example code for a talk about [Dirichlet Flow Matching](https://arxiv.org/abs/2402.05841), an approach to "discrete diffusion" over categorical sequences.
+
+## 💻 Interactively Trying DFM
+
+### ⚙️ Installation
+
+I found it easiest to play around with this repository with `pip` installing the package in editable mode:
+
+```bash
+git clone https://github.com/ElisR/DirichletFlowMatching.git
+cd DirichletFlowMatching
+pip install -e .
+```
+
+## 😃 Examples
+
+Below are some notebooks that interactively demonstrate some concepts in the paper.
+
+### 📊 [Visualising Bayesian Flow for Discrete Variables](./examples/Visualising_Discrete_Flow.ipynb)
+
+### ⚖️ [Training a Simple Discrete "Diffusion" Model on Corrupted Strings](./examples/DFM_String_Training.ipynb)
+
+### 📉 [Training a DFM Vision Model to Produce MNIST Characters](./examples/DFM_MNIST_Training.ipynb)
+
+## 💬 Talk Notes
 
 > [!NOTE]
 >
